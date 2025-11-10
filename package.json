@@ -1,6 +1,6 @@
 {
   "name": "ai_tech_stack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local-first agentic AI stack for Windows/WSL: RAG API (FastAPI + Qdrant + optional Meilisearch), MCP tools, optional n8n automation, and a CLI wizard—so all your LLMs share the same rules, SOPs, and knowledge.",
   "main": "index.js",
   "directories": {
