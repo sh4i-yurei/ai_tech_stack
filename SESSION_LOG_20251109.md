@@ -168,6 +168,73 @@
 
 ---
 
+## 🎯 Phase 6: Cloudflare Tunnel Setup for ChatGPT Integration
+
+### 6.1 `cloudflared` Installation
+- **Goal:** Install the Cloudflare Tunnel client in WSL.
+- **Action:** Executed `sudo apt-get update && sudo apt-get install -y cloudflared`.
+- **Outcome:** `cloudflared` installed successfully after initial `E: Unable to locate package` error and subsequent repository setup.
+
+### 6.2 Cloudflare Login & Certificate Management
+- **Goal:** Authenticate `cloudflared` with Cloudflare and obtain `cert.pem`.
+- **Action:** Executed `cloudflared tunnel login`.
+- **Troubleshooting:** Initial attempt failed to write `cert.pem` automatically. User confirmed nameservers changed to Cloudflare.
+- **Action:** Re-executed `cloudflared tunnel login`.
+- **Outcome:** Successful login, `cert.pem` saved to `/home/mark/.cloudflared/cert.pem`.
+
+### 6.3 Cloudflare Tunnel Creation
+- **Goal:** Create a named tunnel for the RAG API.
+- **Action:** Executed `cloudflared tunnel create rag-tunnel`.
+- **Outcome:** Tunnel created with ID `7be72d98-daf3-4645-afb3-1a6e1a444f1b`.
+
+### 6.4 Cloudflare Tunnel Configuration (`config.yml`)
+- **Goal:** Configure the tunnel to point to the local RAG API.
+- **Action:** Created `~/.cloudflared/config.yml` with tunnel ID, credentials file path, and ingress rules for `rag.keepbreath.ing` pointing to `http://rag:8000`.
+- **Troubleshooting:** Initial `cloudflared` service logs showed `ERR Cannot determine default origin certificate path. No file cert.pem`.
+- **Action:** Corrected `~/.cloudflared/config.yml` to move `origincert: /home/nonroot/.cloudflared/cert.pem` to the top level.
+
+### 6.5 Cloudflare DNS CNAME Record
+- **Goal:** Point `rag.keepbreath.ing` to the Cloudflare Tunnel.
+- **Action:** User manually added CNAME record in Cloudflare DNS:
+    - Type: `CNAME`
+    - Name: `rag`
+    - Target: `7be72d98-daf3-4645-afb3-1a6e1a444f1b.cfargotunnel.com`
+    - Proxy status: Proxied.
+
+### 6.6 Docker Compose Integration for `cloudflared` Service
+- **Goal:** Run `cloudflared` as a Docker Compose service.
+- **Action:** Modified `docker-compose.yml`:
+    - Added `cloudflared` service definition.
+    - Added volume mount for `~/.cloudflared:/home/nonroot/.cloudflared:ro`.
+    - Added explicit volume mount for `cert.pem`: `/home/mark/.cloudflared/cert.pem:/etc/cloudflared/cert.pem:ro`.
+    - Corrected `cloudflared` service `command: tunnel run rag-tunnel`.
+    - Corrected indentation of `rag` and `cloudflared` services.
+    - Corrected indentation of top-level `volumes` section.
+- **Outcome:** `docker compose up -d --build --force-recreate` successfully started all services, including `cloudflared`.
+
+### 6.7 Public URL Retrieval (Troubleshooting)
+- **Goal:** Obtain the public URL for the RAG API via the tunnel.
+- **Action:** Executed `curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name=="rag") | .public_url'`.
+- **Troubleshooting:** Command returned no output, and `cloudflared` logs showed `ERR Cannot determine default origin certificate path. No file cert.pem`.
+- **Outcome:** Public URL retrieval pending resolution of `cert.pem` path issue within the container.
+
+---
+
+## 🎯 Phase 7: ChatGPT Integration (Discussion & Next Steps)
+
+### 7.1 Integration Method Discussion
+- **Goal:** Determine the best method for ChatGPT to access the RAG API.
+- **Discussion:** Explored external deployment (rejected due to cost) vs. local hosting with tunneling.
+- **Decision:** Proceed with Cloudflare Tunnel for a "set and forget" local solution with external access.
+
+### 7.2 `openapi.yaml` Update & ChatGPT Action Configuration
+- **Goal:** Prepare `openapi.yaml` and configure ChatGPT Action.
+- **Action:** (Pending) Update `openapi.yaml` with the stable public URL from Cloudflare Tunnel.
+- **Action:** (Pending) Paste OpenAPI schema directly into Custom GPT "Actions" config.
+- **Outcome:** ChatGPT integration pending resolution of Cloudflare Tunnel `cert.pem` issue.
+
+---
+
 ## ✅ Session Conclusion
 
-This session successfully built and configured the "Agentic AI Stack" in a CPU-only Docker environment, resolved numerous build and port conflicts, and verified the core RAG API functionality. Terminal aliases for RAG tools are fully operational. Integration with VS Code via the MCP extension is configured, pending final verification of the VS Code UI interaction.
+This session successfully built and configured the "Agentic AI Stack" in a CPU-only Docker environment, resolved numerous build and port conflicts, and verified the core RAG API functionality. Terminal aliases for RAG tools are fully operational. Integration with VS Code via the MCP extension is configured, pending final verification of the VS Code UI interaction. Cloudflare Tunnel setup for ChatGPT integration is in progress, with the current blocker being the `cert.pem` path within the `cloudflared` Docker container.
