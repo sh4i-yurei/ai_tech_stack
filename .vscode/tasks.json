@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "RAG: Ingest (knowledge → main)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd /home/mark/ai_tech_stack && echo '{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"rag.ingest\",\"params\":{\"path\":\"knowledge\",\"namespace\":\"main\"}}' | RAG_URL=http://localhost:8000 python3 mcp_rag_stub.py"
+      ]
+    },
+    {
+      "label": "RAG: Search (prompt)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd /home/mark/ai_tech_stack && echo '{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"rag.search\",\"params\":{\"query\":\"${input:query}\",\"namespace\":\"main\",\"k\":${input:k}}}' | RAG_URL=http://localhost:8000 python3 mcp_rag_stub.py"
+      ]
+    },
+    {
+      "label": "RAG: Ask (prompt)",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd /home/mark/ai_tech_stack && echo '{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"rag.ask\",\"params\":{\"query\":\"${input:query}\",\"namespace\":\"main\",\"k\":${input:k}}}' | RAG_URL=http://localhost:8000 python3 mcp_rag_stub.py"
+      ]
+    }
+  ],
+  "inputs": [
+    { "id": "query", "type": "promptString", "description": "Query text", "default": "operating rules" },
+    { "id": "k", "type": "promptString", "description": "Top K", "default": "3" }
+  ]
+}

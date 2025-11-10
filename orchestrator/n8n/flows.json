@@ -1,0 +1,55 @@
+[
+  {
+    "name": "Auto Ingest Knowledge (Hourly)",
+    "nodes": [
+      {
+        "parameters": {
+          "triggerTimes": {
+            "item": [
+              {
+                "hour": "*",
+                "minute": 0
+              }
+            ]
+          }
+        },
+        "name": "Cron",
+        "type": "n8n-nodes-base.cron",
+        "typeVersion": 1,
+        "position": [
+          240,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "requestMethod": "POST",
+          "url": "http://rag:8000/ingest",
+          "jsonParameters": true,
+          "bodyParametersJson": "{\"path\":\"/app/knowledge\",\"namespace\":\"main\"}"
+        },
+        "name": "HTTP Request",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          520,
+          300
+        ]
+      }
+    ],
+    "connections": {
+      "Cron": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": false
+  }
+]

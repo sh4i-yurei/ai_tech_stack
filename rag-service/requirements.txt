@@ -1,0 +1,11 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.0
+qdrant-client==1.11.3
+meilisearch==0.37.1
+sentence-transformers==3.2.1
+numpy==1.26.4
+pypdf==5.1.0
+python-dotenv==1.0.1
+rank-bm25==0.2.2
+tqdm==4.66.5
+prometheus-client==0.21.0

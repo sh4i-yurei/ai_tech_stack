@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports: ["6334:6333"]
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    environment:
+      - MEILI_NO_ANALYTICS=true
+    restart: unless-stopped
+    ports: ["7701:7700"]
+    volumes:
+      - meili_data:/meili_data
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=n8n
+      - POSTGRES_DB=n8n
+    ports: ["5433:5432"]
+    volumes:
+      - n8n_pg:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: ["6380:6379"]
+    volumes:
+      - redis_data:/data
+
+  n8n:
+    image: n8nio/n8n:1.76.1
+    restart: unless-stopped
+    ports: ["5679:5678"]
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8n
+      - N8N_ENCRYPTION_KEY=please-change-this-key
+      - QUEUE_BULL_REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./orchestrator/n8n:/home/node/.n8n
+
+  rag:
+    build: ./rag-service
+    restart: unless-stopped
+    env_file:
+      - ./rag-service/.env
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - MEILI_URL=http://meilisearch:7700
+    ports: ["8000:8000"]
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./rag-service/.env:/app/.env:ro
+    depends_on:
+      - qdrant
+      - meilisearch
+
+
+volumes:
+  qdrant_data:
+  meili_data:
+  n8n_pg:
+  redis_data:
