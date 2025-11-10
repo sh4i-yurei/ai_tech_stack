@@ -72,6 +72,15 @@ services:
       - qdrant
       - meilisearch
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run rag-tunnel
+    depends_on:
+      - rag
+    volumes:
+      - /home/mark/.cloudflared:/home/nonroot/.cloudflared:ro
+      - /home/mark/.cloudflared/cert.pem:/etc/cloudflared/cert.pem:ro
 
 volumes:
   qdrant_data:
