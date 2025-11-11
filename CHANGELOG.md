@@ -4,6 +4,17 @@
 
 ### Added
 
+- **feat(rag): Implement fastembed for embeddings**
+  - Switched embedding model from `SentenceTransformers` to `fastembed` to resolve silent crashes.
+  - Updated `rag-service/rag_server.py` to use `fastembed.TextEmbedding`.
+  - Modified `rag-service/Dockerfile` to manually download `fastembed` model files using `wget` to ensure local availability within the Docker build environment.
+  - Updated `rag-service/rag_server.py` to explicitly set `cache_dir` for `TextEmbedding`.
+- **feat(rag): Add /healthz endpoint**
+  - Added a `/healthz` endpoint to `rag-service/rag_server.py` for unauthenticated health checks.
+- **feat(rag): Restore legacy /query endpoint**
+  - Added a `/query` endpoint to `rag-service/rag_server.py` that calls `/api/retrieve` for backward compatibility.
+- **feat(rag): Implement UUID4 for Qdrant upserts**
+  - Modified `rag-service/rag_server.py` to use `uuid.uuid4()` for generating unique IDs when upserting points to Qdrant.
 - **feat(chat): add OpenAI Responses endpoint + streaming**
   - Added `/api/chat` and `/api/chat/stream` endpoints to `rag_server.py` for interacting with OpenAI's chat models.
   - Added `openai` and `pydantic` to `requirements.txt`.
@@ -11,6 +22,8 @@
   - Added CORS middleware to allow requests from the frontend.
 - **docs(tunnel): add TUNNEL_SETUP.md**
   - Created a new document to explain the Cloudflare Tunnel setup, including `docker-compose.yml` configuration and file permissions.
+- **docs: Organize session logs**
+  - Created `session_logs/` directory and moved existing `SESSION_LOG_*.md` files into it.
 
 ### Fixed
 
