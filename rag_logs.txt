@@ -1,0 +1,157 @@
+rag-1  | Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]
+rag-1  | ort_config.json: 0.00B [00:00, ?B/s][Aort_config.json: 1.27kB [00:00, 3.70MB/s]
+rag-1  | 
+rag-1  | vocab.txt: 0.00B [00:00, ?B/s][A
+rag-1  | vocab.txt: 232kB [00:00, 2.13MB/s][Avocab.txt: 232kB [00:00, 2.11MB/s]
+rag-1  | 
+rag-1  | model_optimized.onnx:   0%|          | 0.00/66.5M [00:00<?, ?B/s][A
+rag-1  | 
+rag-1  | README.md:   0%|          | 0.00/907 [00:00<?, ?B/s][A[AREADME.md: 100%|██████████| 907/907 [00:00<00:00, 3.37MB/s]
+rag-1  | 
+rag-1  | 
+rag-1  | tokenizer_config.json: 0.00B [00:00, ?B/s][A[Atokenizer_config.json: 1.24kB [00:00, 3.88MB/s]
+rag-1  | 
+rag-1  | 
+rag-1  | .gitattributes: 0.00B [00:00, ?B/s][A[A.gitattributes: 1.52kB [00:00, 2.65MB/s]
+rag-1  | Fetching 9 files:  11%|█         | 1/9 [00:02<00:16,  2.04s/it]
+rag-1  | 
+rag-1  | tokenizer.json: 0.00B [00:00, ?B/s][A[A
+rag-1  | 
+rag-1  | 
+rag-1  | config.json:   0%|          | 0.00/706 [00:00<?, ?B/s][A[A[Aconfig.json: 100%|██████████| 706/706 [00:00<00:00, 10.2kB/s]
+rag-1  | Fetching 9 files:  33%|███▎      | 3/9 [00:02<00:04,  1.49it/s]
+rag-1  | 
+rag-1  | 
+rag-1  | special_tokens_map.json:   0%|          | 0.00/695 [00:00<?, ?B/s][A[A[Aspecial_tokens_map.json: 100%|██████████| 695/695 [00:00<00:00, 2.20MB/s]
+rag-1  | 
+rag-1  | 
+rag-1  | tokenizer.json: 711kB [00:00, 764kB/s][A[Atokenizer.json: 711kB [00:00, 763kB/s]
+rag-1  | 
+rag-1  | model_optimized.onnx:  16%|█▌        | 10.5M/66.5M [00:02<00:12, 4.49MB/s][A
+rag-1  | model_optimized.onnx:  32%|███▏      | 21.0M/66.5M [00:03<00:08, 5.69MB/s][A
+rag-1  | model_optimized.onnx:  47%|████▋     | 31.5M/66.5M [00:05<00:05, 6.29MB/s][A
+rag-1  | model_optimized.onnx:  63%|██████▎   | 41.9M/66.5M [00:06<00:03, 6.44MB/s][A
+rag-1  | model_optimized.onnx:  79%|███████▉  | 52.4M/66.5M [00:08<00:02, 6.99MB/s][A
+rag-1  | model_optimized.onnx:  95%|█████████▍| 62.9M/66.5M [00:09<00:00, 7.35MB/s][A
+rag-1  | model_optimized.onnx: 100%|██████████| 66.5M/66.5M [00:09<00:00, 7.48MB/s][Amodel_optimized.onnx: 100%|██████████| 66.5M/66.5M [00:09<00:00, 6.75MB/s]
+rag-1  | Fetching 9 files:  44%|████▍     | 4/9 [00:11<00:17,  3.47s/it]Fetching 9 files: 100%|██████████| 9/9 [00:11<00:00,  1.24s/it]
+rag-1  | INFO:     Started server process [1]
+rag-1  | INFO:     Waiting for application startup.
+rag-1  | TRACE:    ASGI [1] Started scope={'type': 'lifespan', 'asgi': {'version': '3.0', 'spec_version': '2.0'}, 'state': {}}
+rag-1  | TRACE:    ASGI [1] Receive {'type': 'lifespan.startup'}
+rag-1  | TRACE:    ASGI [1] Send {'type': 'lifespan.startup.complete'}
+rag-1  | INFO:     Application startup complete.
+rag-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+rag-1  | TRACE:    172.19.0.1:34690 - HTTP connection made
+rag-1  | TRACE:    172.19.0.1:34690 - ASGI [2] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.1', 34690), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'GET', 'path': '/healthz', 'raw_path': b'/healthz', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.1:34690 - ASGI [2] Send {'type': 'http.response.start', 'status': 404, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.1:34690 - "GET /healthz HTTP/1.1" 404 Not Found
+rag-1  | TRACE:    172.19.0.1:34690 - ASGI [2] Send {'type': 'http.response.body', 'body': '<22 bytes>', 'more_body': True}
+rag-1  | TRACE:    172.19.0.1:34690 - ASGI [2] Send {'type': 'http.response.body', 'body': '<0 bytes>', 'more_body': False}
+rag-1  | TRACE:    172.19.0.1:34690 - ASGI [2] Completed
+rag-1  | TRACE:    172.19.0.1:34690 - HTTP connection lost
+rag-1  | TRACE:    172.19.0.1:34692 - HTTP connection made
+rag-1  | TRACE:    172.19.0.1:34692 - ASGI [3] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.1', 34692), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'GET', 'path': '/health', 'raw_path': b'/health', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.1:34692 - ASGI [3] Send {'type': 'http.response.start', 'status': 200, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.1:34692 - "GET /health HTTP/1.1" 200 OK
+rag-1  | TRACE:    172.19.0.1:34692 - ASGI [3] Send {'type': 'http.response.body', 'body': '<15 bytes>', 'more_body': True}
+rag-1  | TRACE:    172.19.0.1:34692 - ASGI [3] Send {'type': 'http.response.body', 'body': '<0 bytes>', 'more_body': False}
+rag-1  | TRACE:    172.19.0.1:34692 - ASGI [3] Completed
+rag-1  | TRACE:    172.19.0.1:34692 - HTTP connection lost
+rag-1  | TRACE:    172.19.0.4:51148 - HTTP connection made
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.4', 51148), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'POST', 'path': '/ingest', 'raw_path': b'/ingest', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Receive {'type': 'http.request', 'body': '<62 bytes>', 'more_body': False}
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Send {'type': 'http.response.start', 'status': 400, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.4:51148 - "POST /ingest HTTP/1.1" 400 Bad Request
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Send {'type': 'http.response.body', 'body': '<63 bytes>', 'more_body': True}
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Send {'type': 'http.response.body', 'body': '<0 bytes>', 'more_body': False}
+rag-1  | TRACE:    172.19.0.4:51148 - ASGI [4] Completed
+rag-1  | TRACE:    172.19.0.4:51148 - HTTP connection lost
+rag-1  | TRACE:    172.19.0.4:44032 - HTTP connection made
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.4', 44032), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'POST', 'path': '/ingest', 'raw_path': b'/ingest', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Receive {'type': 'http.request', 'body': '<47 bytes>', 'more_body': False}
+rag-1  | Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 11625.73it/s]
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Send {'type': 'http.response.start', 'status': 200, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.4:44032 - "POST /ingest HTTP/1.1" 200 OK
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Send {'type': 'http.response.body', 'body': '<34 bytes>', 'more_body': True}
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Send {'type': 'http.response.body', 'body': '<0 bytes>', 'more_body': False}
+rag-1  | TRACE:    172.19.0.4:44032 - ASGI [5] Completed
+rag-1  | TRACE:    172.19.0.4:44032 - HTTP connection lost
+rag-1  | TRACE:    172.19.0.1:57104 - HTTP connection made
+rag-1  | TRACE:    172.19.0.1:57104 - ASGI [6] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.1', 57104), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'POST', 'path': '/api/retrieve', 'raw_path': b'/api/retrieve', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.1:57104 - ASGI [6] Send {'type': 'http.response.start', 'status': 500, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.1:57104 - "POST /api/retrieve HTTP/1.1" 500 Internal Server Error
+rag-1  | TRACE:    172.19.0.1:57104 - ASGI [6] Send {'type': 'http.response.body', 'body': '<21 bytes>'}
+rag-1  | TRACE:    172.19.0.1:57104 - ASGI [6] Raised exception
+rag-1  | ERROR:    Exception in ASGI application
+rag-1  | Traceback (most recent call last):
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 401, in run_asgi
+rag-1  |     result = await app(  # type: ignore[func-returns-value]
+rag-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+rag-1  |     return await self.app(scope, receive, send)
+rag-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/message_logger.py", line 84, in __call__
+rag-1  |     raise exc from None
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/message_logger.py", line 80, in __call__
+rag-1  |     await self.app(scope, inner_receive, inner_send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+rag-1  |     await super().__call__(scope, receive, send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+rag-1  |     await self.middleware_stack(scope, receive, send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 187, in __call__
+rag-1  |     raise exc
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 165, in __call__
+rag-1  |     await self.app(scope, receive, _send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 185, in __call__
+rag-1  |     with collapse_excgroups():
+rag-1  |   File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+rag-1  |     self.gen.throw(typ, value, traceback)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+rag-1  |     raise exc
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 187, in __call__
+rag-1  |     response = await self.dispatch_func(request, call_next)
+rag-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/app/rag_server.py", line 30, in require_action_key
+rag-1  |     raise HTTPException(status_code=401, detail="Unauthorized")
+rag-1  | fastapi.exceptions.HTTPException: 401: Unauthorized
+rag-1  | TRACE:    172.19.0.1:57104 - HTTP connection lost
+rag-1  | TRACE:    172.19.0.1:59352 - HTTP connection made
+rag-1  | TRACE:    172.19.0.1:59352 - ASGI [7] Started scope={'type': 'http', 'asgi': {'version': '3.0', 'spec_version': '2.4'}, 'http_version': '1.1', 'server': ('172.19.0.4', 8000), 'client': ('172.19.0.1', 59352), 'scheme': 'http', 'root_path': '', 'headers': '<...>', 'state': {}, 'method': 'POST', 'path': '/api/retrieve', 'raw_path': b'/api/retrieve', 'query_string': b''}
+rag-1  | TRACE:    172.19.0.1:59352 - ASGI [7] Send {'type': 'http.response.start', 'status': 500, 'headers': '<...>'}
+rag-1  | INFO:     172.19.0.1:59352 - "POST /api/retrieve HTTP/1.1" 500 Internal Server Error
+rag-1  | TRACE:    172.19.0.1:59352 - ASGI [7] Send {'type': 'http.response.body', 'body': '<21 bytes>'}
+rag-1  | TRACE:    172.19.0.1:59352 - ASGI [7] Raised exception
+rag-1  | ERROR:    Exception in ASGI application
+rag-1  | Traceback (most recent call last):
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 401, in run_asgi
+rag-1  |     result = await app(  # type: ignore[func-returns-value]
+rag-1  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+rag-1  |     return await self.app(scope, receive, send)
+rag-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/message_logger.py", line 84, in __call__
+rag-1  |     raise exc from None
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/message_logger.py", line 80, in __call__
+rag-1  |     await self.app(scope, inner_receive, inner_send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+rag-1  |     await super().__call__(scope, receive, send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 113, in __call__
+rag-1  |     await self.middleware_stack(scope, receive, send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 187, in __call__
+rag-1  |     raise exc
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 165, in __call__
+rag-1  |     await self.app(scope, receive, _send)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 185, in __call__
+rag-1  |     with collapse_excgroups():
+rag-1  |   File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+rag-1  |     self.gen.throw(typ, value, traceback)
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 82, in collapse_excgroups
+rag-1  |     raise exc
+rag-1  |   File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 187, in __call__
+rag-1  |     response = await self.dispatch_func(request, call_next)
+rag-1  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+rag-1  |   File "/app/rag_server.py", line 30, in require_action_key
+rag-1  |     raise HTTPException(status_code=401, detail="Unauthorized")
+rag-1  | fastapi.exceptions.HTTPException: 401: Unauthorized
+rag-1  | TRACE:    172.19.0.1:59352 - HTTP connection lost

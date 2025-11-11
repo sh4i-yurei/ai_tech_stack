@@ -1,14 +1,23 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+## [Unreleased]
 
-### [1.1.1](https://github.com/sh4i-yurei/ai_tech_stack/compare/v1.1.0...v1.1.1) (2025-11-10)
+### Added
 
-## [1.1.0](https://github.com/sh4i-yurei/ai_tech_stack/compare/v1.0.0...v1.1.0) (2025-11-10)
+- **feat(chat): add OpenAI Responses endpoint + streaming**
+  - Added `/api/chat` and `/api/chat/stream` endpoints to `rag_server.py` for interacting with OpenAI's chat models.
+  - Added `openai` and `pydantic` to `requirements.txt`.
+  - Added `OPENAI_API_KEY` and `OPENAI_MODEL` to `.env` and `docker-compose.yml`.
+  - Added CORS middleware to allow requests from the frontend.
+- **docs(tunnel): add TUNNEL_SETUP.md**
+  - Created a new document to explain the Cloudflare Tunnel setup, including `docker-compose.yml` configuration and file permissions.
 
+### Fixed
 
-### Features
-
-* add initial Agentic AI Stack code ([33f3051](https://github.com/sh4i-yurei/ai_tech_stack/commit/33f30510d47c04885383bd469227be41adbd6f29))
-
-## 1.0.0 (2025-11-10)
+- **fix(cloudflared): resolve tunnel credential bug**
+  - Corrected the `cloudflared` service definition in `docker-compose.yml` by removing the `cert.pem` bind and explicitly pointing to the config file.
+  - Corrected the permissions of the `~/.cloudflared` directory to `755` to allow the container to access the configuration and credential files.
+- **fix(rag): resolve openai dependency conflict**
+  - Pinned `openai` to `1.10.0` and `httpx` to `0.26.0` in `requirements.txt` to resolve a `TypeError` on startup.
+- **fix(rag): handle missing OPENAI_API_KEY**
+  - Added a check in the chat endpoints to return a 500 error if the `OPENAI_API_KEY` is not set.

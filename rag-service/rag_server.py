@@ -1,268 +1,137 @@
-import os, io, re, uuid, glob, json, time
-from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, Response
+import os, glob
+from typing import List, Optional
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 from qdrant_client import QdrantClient
-from qdrant_client.http import models as qm
-from sentence_transformers import SentenceTransformer
-from pypdf import PdfReader
-from rank_bm25 import BM25Okapi
-import numpy as np
-from prometheus_client import Counter, Gauge, generate_latest
+from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
-try:
-    import meilisearch
-except Exception:
-    meilisearch = None
+# ---- Embedder (fast, no torch) ----
+from fastembed import TextEmbedding
 
-load_dotenv()
+app = FastAPI(title="RAG Service")
 
-QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
-MEILI_URL = os.getenv("MEILI_URL", "http://localhost:7700")
-EMB_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+# CORS stays as you already configured
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173","https://rag.keepbreath.ing"],
+    allow_methods=["POST","GET","OPTIONS"],
+    allow_headers=["*"],
+)
 
-app = FastAPI(title="Enterprise RAG API")
+# ---- Bearer gate (you already added this) ----
+RAG_ACTION_KEY = os.getenv("RAG_ACTION_KEY","")
+@app.middleware("http")
+async def require_action_key(request: Request, call_next):
+    if request.url.path.startswith("/health"):
+        return await call_next(request)
+    auth = request.headers.get("authorization", "")
+    if RAG_ACTION_KEY and not (auth.startswith("Bearer ") and auth.split(" ",1)[1] == RAG_ACTION_KEY):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return await call_next(request)
 
-Q_QUERIES = Counter("rag_queries_total", "Total /query calls")
-Q_INGEST = Counter("rag_ingest_total", "Total /ingest calls")
-G_VECTORS = Gauge("rag_vectors", "Vectors per namespace", ["namespace"])
-
-try:
-    print(f"Loading SentenceTransformer model: {EMB_MODEL_NAME}")
-    _model = SentenceTransformer(EMB_MODEL_NAME)
-    print(f"SentenceTransformer model loaded successfully. Vector dim: {_model.get_sentence_embedding_dimension()}")
-except Exception as e:
-    print(f"ERROR: Failed to load SentenceTransformer model: {e}")
-    raise # Re-raise the exception to ensure container crashes if it's a fatal error
-
-VECTOR_DIM = _model.get_sentence_embedding_dimension()
-def embed(texts: List[str]):
-    return _model.encode(texts, normalize_embeddings=True)
-
-qc = QdrantClient(url=QDRANT_URL)
-ms = None
-if meilisearch:
-    try:
-        ms = meilisearch.Client(MEILI_URL)
-    except Exception:
-        ms = None
-
-def ensure_collection(name: str):
-    try:
-        qc.get_collection(name)
-    except Exception:
-        qc.create_collection(
-            collection_name=name,
-            vectors_config=qm.VectorParams(size=VECTOR_DIM, distance=qm.Distance.COSINE),
-        )
-
-def load_text_from_path(path: str) -> List[Dict[str, Any]]:
-    out = []
-    for fp in glob.glob(os.path.join(path, "**"), recursive=True):
-        if os.path.isdir(fp):
-            continue
-        ext = os.path.splitext(fp)[1].lower()
-        try:
-            if ext in [".md", ".txt"]:
-                with open(fp, "r", encoding="utf-8", errors="ignore") as f:
-                    out.append({"text": f.read(), "source": fp})
-            elif ext in [".pdf"]:
-                reader = PdfReader(fp)
-                buf = []
-                for page in reader.pages:
-                    try:
-                        buf.append(page.extract_text() or "")
-                    except Exception:
-                        pass
-                out.append({"text": "\n".join(buf), "source": fp})
-        except Exception as e:
-            print(f"[WARN] reading {fp}: {e}")
-    return out
-
-def simple_chunk(text: str, max_chars=1200, overlap=200) -> List[str]:
-    text = re.sub(r"\s+"," ", text).strip()
-    if not text:
-        return []
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = min(start + max_chars, len(text))
-        chunk = text[start:end]
-        chunks.append(chunk)
-        start = end - overlap
-        if start < 0:
-            start = 0
-        if end == len(text):
-            break
-    return chunks
-
-_bm25_index: Dict[str, Dict[str, Any]] = {}
-def rebuild_bm25(namespace: str, texts: List[str]):
-    tokenized = [t.lower().split() for t in texts]
-    _bm25_index[namespace] = {
-        "bm25": BM25Okapi(tokenized) if texts else None,
-        "texts": texts,
-    }
-
-class IngestReq(BaseModel):
-    path: str
-    namespace: str = "main"
-
-class QueryReq(BaseModel):
+# ---- Models for retrieve ----
+class RetrieveIn(BaseModel):
     query: str
-    namespace: str = "main"
-    k: int = 6
-    hybrid: bool = True
-    return_context_only: bool = False
+    top_k: Optional[int] = None
+
+class Chunk(BaseModel):
+    id: str
+    score: float
+    text: str
+    source: Optional[str] = None
+
+class RetrieveOut(BaseModel):
+    chunks: List[Chunk]
+
+class IngestIn(BaseModel):
+    path: str = "/app/knowledge"  # container path
+
+# ---- Clients / config ----
+_QDRANT_URL = os.getenv("QDRANT_URL","http://qdrant:6333")
+_COLLECTION = os.getenv("QDRANT_COLLECTION","docs")
+_TOPK_DEFAULT = int(os.getenv("RETRIEVE_TOPK","5"))
+
+_qc = QdrantClient(_QDRANT_URL)
+# bge-small-en-v1.5 → 384-dim (same width as MiniLM), fast & container-safe
+_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 @app.get("/health")
 def health():
-    return {"status":"ok","qdrant":QDRANT_URL,"meili":bool(ms),"model":EMB_MODEL_NAME,"dim":VECTOR_DIM}
+    return {"status": "ok"}
 
-@app.get("/metrics")
-def metrics():
-    return Response(generate_latest(), media_type="text/plain")
+@app.post("/api/retrieve", response_model=RetrieveOut)
+def retrieve(in_: RetrieveIn):
+    # 1) embed query (fastembed yields a generator)
+    try:
+        qvec = next(_embedder.embed([in_.query]))
+    except Exception:
+        # if embedding ever failed, return empty instead of crashing
+        return RetrieveOut(chunks=[])
+
+    # 2) search qdrant
+    k = in_.top_k or _TOPK_DEFAULT
+    try:
+        res = _qc.search(
+            collection_name=_COLLECTION,
+            query_vector=list(qvec),
+            limit=k,
+            with_payload=True,
+            with_vectors=False,
+        )
+    except Exception:
+        return RetrieveOut(chunks=[])
+
+    # 3) shape response
+    out = []
+    for r in res:
+        p = r.payload or {}
+        out.append(Chunk(
+            id=str(r.id),
+            score=float(r.score),
+            text=p.get("text",""),
+            source=p.get("source"),
+        ))
+    return RetrieveOut(chunks=out)
 
 @app.post("/ingest")
-def ingest(req: IngestReq):
-    Q_INGEST.inc()
-    ns = req.namespace
-    ensure_collection(ns)
+def ingest(in_: IngestIn):
+    root = in_.path
+    files = []
+    for ext in ("*.md","*.txt"):
+        files += glob.glob(os.path.join(root, ext))
+    if not files:
+        raise HTTPException(status_code=400, detail=f"No files found under {root}")
 
-    raw_docs = load_text_from_path(req.path)
-    total_chunks = 0
-    plain_texts = []
-
-    points = []
-    if ms:
+    texts, payloads = [], []
+    for fp in files:
         try:
-            ms.index(ns).get_raw_info()
+            with open(fp, "r", encoding="utf-8", errors="ignore") as f:
+                t = f.read().strip()
         except Exception:
-            ms.create_index(uid=ns, options={"primaryKey": "id"})
-
-    for doc in raw_docs:
-        chunks = simple_chunk(doc["text"])
-        total_chunks += len(chunks)
-        plain_texts.extend(chunks)
-        for ch in chunks:
-            points.append({
-                "id": str(uuid.uuid4()),
-                "payload": {"text": ch, "source": doc["source"], "namespace": ns},
-            })
-
-    batch = 64
-    vecs = []
-    for i in range(0, len(points), batch):
-        texts = [p["payload"]["text"] for p in points[i:i+batch]]
-        vecs.extend(embed(texts))
-
-    if points:
-        qc.upsert(
-            collection_name=ns,
-            points=qm.Batch(
-                ids=[p["id"] for p in points],
-                vectors=vecs,
-                payloads=[p["payload"] for p in points],
-            ),
-        )
-        collection_info = qc.get_collection(ns)
-        vectors_count = collection_info.vectors_count if collection_info.vectors_count is not None else 0
-        G_VECTORS.labels(ns).set(vectors_count)
-
-        if ms:
-            docs = [{"id": p["id"], "text": p["payload"]["text"], "source": p["payload"]["source"]} for p in points]
-            ms.index(ns).add_documents(docs)
-
-    rebuild_bm25(ns, plain_texts)
-    return {"ingested_files": len(raw_docs), "chunks": total_chunks, "namespace": ns}
-
-def qdrant_search(namespace: str, query: str, k: int):
-    ensure_collection(namespace)
-    qvec = embed([query])[0]
-    res = qc.search(
-        collection_name=namespace,
-        query_vector=qvec,
-        limit=k,
-        with_payload=True,
-        score_threshold=None
-    )
-    matches = []
-    for r in res:
-        pl = r.payload or {}
-        matches.append({
-            "score": float(r.score),
-            "text": pl.get("text",""),
-            "source": pl.get("source",""),
-            "namespace": pl.get("namespace", namespace),
-        })
-    return matches
-
-def bm25_search(namespace: str, query: str, k: int):
-    idx = _bm25_index.get(namespace)
-    if not idx or not idx.get("bm25"):
-        return []
-    tokenized = query.lower().split()
-    scores = idx["bm25"].get_scores(tokenized)
-    pairs = list(enumerate(scores))
-    pairs.sort(key=lambda x: x[1], reverse=True)
-    texts = idx["texts"]
-    out = []
-    for (i, s) in pairs[:k]:
-        out.append({"score": float(s), "text": texts[i], "source": "bm25", "namespace": namespace})
-    return out
-
-def meili_search(namespace: str, query: str, k: int):
-    if not ms:
-        return []
-    try:
-        hits = ms.index(namespace).search(query, {"limit": k}).get("hits", [])
-        out = []
-        for h in hits:
-            out.append({"score": 1.0, "text": h.get("text",""), "source": h.get("source",""), "namespace": namespace})
-        return out
-    except Exception:
-        return []
-
-def synthesize_answer(query: str, snippets: List[str], max_chars=1200) -> str:
-    joined = "\n- " + "\n - ".join([s[:300] for s in snippets])
-    return f"Context bullets (extracts):{joined}\n\nUser question: {query}\n\nUse the context bullets above to answer precisely and cite sources."
-
-@app.post("/query")
-def query(req: QueryReq):
-    Q_QUERIES.inc()
-    vres = qdrant_search(req.namespace, req.query, req.k)
-    lres = bm25_search(req.namespace, req.query, req.k)
-    mres = meili_search(req.namespace, req.query, req.k)
-
-    combined = vres + mres + lres if req.hybrid else vres
-    seen = set()
-    fused = []
-    for m in combined:
-        key = (m["text"], m.get("source",""))
-        if key in seen:
             continue
-        seen.add(key)
-        fused.append(m)
-    matches = fused[:req.k]
+        if not t:
+            continue
+        texts.append(t)
+        payloads.append({"text": t, "source": os.path.basename(fp)})
 
-    snippets = [m["text"] for m in matches]
-    context = "\n\n---\n".join([f"{m['text']}\n(Source: {m['source']})" for m in matches])
-    if req.return_context_only:
-        return {"context": context, "matches": matches}
+    if not texts:
+        raise HTTPException(status_code=400, detail="No non-empty docs")
 
-    answer = synthesize_answer(req.query, snippets)
-    return {"answer": answer, "context": context, "matches": matches}
+    # Embed and upsert
+    emb = TextEmbedding()
+    vecs = list(emb.embed(texts))
 
-@app.get("/diag/index")
-def diag_index():
-    colls = qc.get_collections().collections
-    out = {}
-    for c in colls:
-        name = c.name
-        info = qc.get_collection(name)
-        out[name] = {
-            "vectors_count": info.vectors_count,
-            "status": str(info.status),
-        }
-    return out
+    qc = QdrantClient(url=os.getenv("QDRANT_URL", "http://qdrant:6333"))
+    COL = os.getenv("QDRANT_COLLECTION", "docs")
+    try:
+        qc.get_collection(COL)
+    except Exception:
+        qc.recreate_collection(
+            COL,
+            vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+        )
+
+    points = [PointStruct(id=i, vector=vecs[i], payload=payloads[i]) for i in range(len(texts))]
+    qc.upsert(collection_name=COL, points=points)
+    return {"ingested": len(points), "collection": COL}

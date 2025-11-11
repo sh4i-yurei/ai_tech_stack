@@ -60,30 +60,42 @@ services:
     build: ./rag-service
     restart: unless-stopped
     env_file:
-      - ./rag-service/.env
+      - ./.env
     environment:
       - QDRANT_URL=http://qdrant:6333
       - MEILI_URL=http://meilisearch:7700
-    ports: ["8000:8000"]
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-mini}
+    ports:
+      - "8010:8000"
     volumes:
       - ./knowledge:/app/knowledge
       - ./rag-service/.env:/app/.env:ro
     depends_on:
       - qdrant
       - meilisearch
+    command: uvicorn rag_server:app --host 0.0.0.0 --port 8000 --log-level trace
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel run rag-tunnel
+    command: tunnel --config /home/nonroot/.cloudflared/config.yml run
     depends_on:
       - rag
     volumes:
       - /home/mark/.cloudflared:/home/nonroot/.cloudflared:ro
-      - /home/mark/.cloudflared/cert.pem:/etc/cloudflared/cert.pem:ro
 
 volumes:
   qdrant_data:
   meili_data:
   n8n_pg:
   redis_data:
+
+# --- ai_tech_stack: RAG service notes ---
+# RAG_ACTION_KEY passthrough comes from .env (Compose auto-loads .env).
+# Ensure your rag service includes:
+#   env_file:
+#     - ./.env
+#   ports:
+#     - "8000:8000"
+# ----------------------------------------
