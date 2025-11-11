@@ -1,4 +1,4 @@
-import os, glob
+import os, glob, uuid
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,10 +54,14 @@ _TOPK_DEFAULT = int(os.getenv("RETRIEVE_TOPK","5"))
 
 _qc = QdrantClient(_QDRANT_URL)
 # bge-small-en-v1.5 → 384-dim (same width as MiniLM), fast & container-safe
-_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir="/app/.fastembed_cache")
 
 @app.get("/health")
 def health():
+    return {"status": "ok"}
+
+@app.get("/healthz")
+def healthz():
     return {"status": "ok"}
 
 @app.post("/api/retrieve", response_model=RetrieveOut)
@@ -94,6 +98,10 @@ def retrieve(in_: RetrieveIn):
         ))
     return RetrieveOut(chunks=out)
 
+@app.post("/query", response_model=RetrieveOut)
+def query(in_: RetrieveIn):
+    return retrieve(in_)
+
 @app.post("/ingest")
 def ingest(in_: IngestIn):
     root = in_.path
@@ -119,7 +127,7 @@ def ingest(in_: IngestIn):
         raise HTTPException(status_code=400, detail="No non-empty docs")
 
     # Embed and upsert
-    emb = TextEmbedding()
+    emb = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir="/app/.fastembed_cache")
     vecs = list(emb.embed(texts))
 
     qc = QdrantClient(url=os.getenv("QDRANT_URL", "http://qdrant:6333"))
@@ -132,6 +140,6 @@ def ingest(in_: IngestIn):
             vectors_config=VectorParams(size=384, distance=Distance.COSINE),
         )
 
-    points = [PointStruct(id=i, vector=vecs[i], payload=payloads[i]) for i in range(len(texts))]
+    points = [PointStruct(id=str(uuid.uuid4()), vector=vecs[i], payload=payloads[i]) for i in range(len(texts))]
     qc.upsert(collection_name=COL, points=points)
     return {"ingested": len(points), "collection": COL}
