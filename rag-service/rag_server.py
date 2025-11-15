@@ -54,7 +54,7 @@ _TOPK_DEFAULT = int(os.getenv("RETRIEVE_TOPK","5"))
 
 _qc = QdrantClient(_QDRANT_URL)
 # bge-small-en-v1.5 → 384-dim (same width as MiniLM), fast & container-safe
-_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir="/app/.fastembed_cache")
+_embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir=".cache/fastembed")
 
 @app.get("/health")
 def health():
@@ -104,10 +104,23 @@ def query(in_: RetrieveIn):
 
 @app.post("/ingest")
 def ingest(in_: IngestIn):
-    root = in_.path
-    files = []
-    for ext in ("*.md","*.txt"):
-        files += glob.glob(os.path.join(root, ext))
+    def _collect_files(base_dir: str) -> list:
+        if not os.path.exists(base_dir):
+            return []
+        gathered = []
+        for walk_dir, _, _ in os.walk(base_dir):
+            for ext in ("*.md", "*.txt", "*.json"):
+                gathered.extend(glob.glob(os.path.join(walk_dir, ext)))
+        return gathered
+
+    root = os.path.abspath(in_.path)
+    files = _collect_files(root)
+    if not files and root.startswith("/app/"):
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        alt_root = os.path.join(repo_root, root[len("/app/"):])
+        files = _collect_files(alt_root)
+        if files:
+            root = alt_root
     if not files:
         raise HTTPException(status_code=400, detail=f"No files found under {root}")
 
@@ -127,7 +140,7 @@ def ingest(in_: IngestIn):
         raise HTTPException(status_code=400, detail="No non-empty docs")
 
     # Embed and upsert
-    emb = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir="/app/.fastembed_cache")
+    emb = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", cache_dir=".cache/fastembed")
     vecs = list(emb.embed(texts))
 
     qc = QdrantClient(url=os.getenv("QDRANT_URL", "http://qdrant:6333"))
